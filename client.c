@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     }
 
     printf("connect success\n");
-    char str[] = "您已上线\n";
+    char str[] = "已上线\n";
     printf("请输入用户名：");
     fgets(name, sizeof(name), stdin);
     send(fd, name, (strlen(name) - 1), 0);
