@@ -13,7 +13,7 @@
 
 
 int ftArray[MAXCLIENT] = {0};
-char buf[1024];
+char buf[BUFFSIZE];
 
 void *pthread_service(void *sfd)
 {

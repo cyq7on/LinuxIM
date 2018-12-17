@@ -11,9 +11,9 @@
 #include "common.h"
 
 
-char sendbuf[1024];
-char recvbuf[1024];
-char name[128];
+char sendbuf[BUFFSIZE];
+char recvbuf[BUFFSIZE];
+char name[32];
 int fd;
 
 void pthread_recv(void *ptr)
