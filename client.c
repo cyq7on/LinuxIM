@@ -8,9 +8,8 @@
 #include <netdb.h>
 #include <string.h>
 #include<pthread.h> 
+#include "common.h"
 
-#define PORT 1234
-#define MAXSIZE 128
 
 char sendbuf[1024];
 char recvbuf[1024];
@@ -22,7 +21,7 @@ void pthread_recv(void *ptr)
     while (1)
     {
         // 接收数据
-        if ((recv(fd, recvbuf, MAXSIZE, 0)) == -1)
+        if ((recv(fd, recvbuf, BUFFSIZE, 0)) == -1)
         {
             printf("recv error\n");
             exit(1);
@@ -35,7 +34,7 @@ void pthread_recv(void *ptr)
 
 int main(int argc, char *argv[])
 {
-    char buf[MAXSIZE];
+    char buf[BUFFSIZE];
     struct hostent *host;
     struct sockaddr_in server;
 

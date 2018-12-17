@@ -1,1 +1,3 @@
 *.o
+.fuse_hidden0000044e00000003
+.vscode/

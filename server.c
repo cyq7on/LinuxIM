@@ -7,11 +7,10 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include "common.h"
 
-#define PORT 1234
 #define BACKLOG 1
-#define MAXCLIENT 5
-#define MAXSIZE 1024
+
 
 int ftArray[MAXCLIENT] = {0};
 char buf[1024];
@@ -23,7 +22,7 @@ void *pthread_service(void *sfd)
     {
         int numbytes;
         int i;
-        numbytes = recv(fd, buf, MAXSIZE, 0);
+        numbytes = recv(fd, buf, BUFFSIZE, 0);
         if (numbytes <= 0)
         {
             for (i = 0; i < MAXCLIENT; i++)
@@ -39,7 +38,7 @@ void *pthread_service(void *sfd)
         }
         printf("receive message from %d,size=%d\n", fd, numbytes);
         sendMsg(fd, buf, numbytes);
-        bzero(buf, MAXSIZE);
+        bzero(buf, BUFFSIZE);
     }
     close(fd);
 }
