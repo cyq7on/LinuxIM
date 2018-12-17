@@ -7,12 +7,14 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 #include "common.h"
 
 #define BACKLOG 1
 
 
 int ftArray[MAXCLIENT] = {0};
+char *user[MAXCLIENT];
 char buf[BUFFSIZE];
 
 void *pthread_service(void *sfd)
@@ -36,8 +38,25 @@ void *pthread_service(void *sfd)
             printf("fd=%d exit\n", fd);
             break;
         }
+        /* if (strncmp(buf, "exit", 4) == 0) {
+
+        } */
         printf("receive message from %d,size=%d\n", fd, numbytes);
-        sendMsg(fd, buf, numbytes);
+        
+        if(strncmp(buf, "/p", 2) == 0) {
+            /* char *spilit;
+            char *arr[MAXCLIENT];
+            
+            int i = 0;
+            while (spilit = strtok(buf," ")) {
+                arr[i++] = spilit;
+            }
+            char *msg = arr[--i];
+            printf("msg:%s",msg); */
+
+        }else {
+            sendMsg(fd, buf, numbytes);
+        }
         bzero(buf, BUFFSIZE);
     }
     close(fd);

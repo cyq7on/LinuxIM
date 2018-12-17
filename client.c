@@ -91,12 +91,10 @@ int main(int argc, char *argv[])
             printf("您已下线\n");
             send(fd, sendbuf, (strlen(sendbuf)), 0);
             break;
-        }else if(strncmp(sendbuf, "/p ", 3) == 0) {
-
         }
         char msg[1026];
         send(fd, name, (strlen(name) - 1), 0);
-        sprintf(msg,"-%d:%s",fd,sendbuf);
+        sprintf(msg,":%s",sendbuf);
         send(fd,msg,strlen(msg),0);
     }
     close(fd);
