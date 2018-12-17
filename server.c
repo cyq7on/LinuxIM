@@ -10,14 +10,12 @@
 
 #define PORT 1234    
 #define BACKLOG 1 
-#define Max 5
+#define MAXCLIENT 5
 #define MAXSIZE 1024
 
-/*定义全局变量*/
-int fdt[Max]={0};
+int fdt[MAXCLIENT]={0};
 char mes[1024];
 
-/**/
 
 void *pthread_service(void* sfd)
 {
@@ -28,18 +26,18 @@ void *pthread_service(void* sfd)
         int i;
         numbytes=recv(fd,mes,MAXSIZE,0);
         if(numbytes<=0){
-            for(i=0;i<Max;i++){
+            for(i=0;i<MAXCLIENT;i++){
                 if(fd==fdt[i]){
                     fdt[i]=0;               
                 }
             }
             printf("numbytes=%d\n",numbytes);
-            printf("exit! fd=%d\n",fd);
+            printf("fd=%d exit\n",fd);
             break;
 
         }
         printf("receive message from %d,size=%d\n",fd,numbytes);
-        SendToClient(fd,mes,numbytes);
+        sendMsg(fd,mes,numbytes);
         bzero(mes,MAXSIZE);
 
     }
@@ -48,11 +46,11 @@ void *pthread_service(void* sfd)
 }
 
 
-/**/
-int SendToClient(int fd,char* buf,int Size)
+// 发送消息到客户端
+int sendMsg(int fd,char* buf,int Size)
 {
     int i;
-    for(i=0;i<Max;i++){
+    for(i=0;i<MAXCLIENT;i++){
         printf("fdt[%d]=%d\n",i,fdt[i]);
         if((fdt[i]!=0)&&(fdt[i]!=fd)){
             send(fdt[i],buf,Size,0); 
@@ -60,13 +58,10 @@ int SendToClient(int fd,char* buf,int Size)
         }
     }   
     return 0;
-
-
 }
 
 int  main()  
 { 
-
 
     int listenfd, connectfd;    
     struct sockaddr_in server; 
@@ -79,7 +74,7 @@ int  main()
 
     if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) 
     {   
-        perror("Creating socket failed.");
+        perror("Create socket error\n");
         exit(1);
     }
 
@@ -96,34 +91,33 @@ int  main()
 
 
     if (bind(listenfd, (struct sockaddr *)&server, sizeof(struct sockaddr)) == -1) { 
-    perror("Bind error.");
+    perror("Bind error");
     exit(1); 
     }   
 
 
     if(listen(listenfd,BACKLOG) == -1){  
-    perror("listen() error\n"); 
+    perror("Listen error\n"); 
     exit(1); 
     } 
     printf("Waiting for client....\n");
-
 
     while(1)
     {
 
         if ((fd = accept(listenfd,(struct sockaddr *)&client,&sin_size))==-1) {
-        perror("accept() error\n"); 
+        perror("Accept error\n"); 
         exit(1); 
 
         }
 
-        if(number>=Max){
-            printf("no more client is allowed\n");
+        if(number>=MAXCLIENT){
+            printf("Client is full\n");
             close(fd);
         }
 
         int i;
-        for(i=0;i<Max;i++){
+        for(i=0;i<MAXCLIENT;i++){
             if(fdt[i]==0){
                 fdt[i]=fd;
                 break;
@@ -131,16 +125,12 @@ int  main()
 
         }
 
-
-
         pthread_t tid;
         pthread_create(&tid,NULL,(void*)pthread_service,&fd);
 
         number=number+1;
 
-
     }
-
 
     close(listenfd);            
  }
