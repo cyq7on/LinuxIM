@@ -17,7 +17,7 @@ char name[100];
 int fd;
 
 void pthread_recv(void* ptr){
-		while(1){
+    while(1){
 			if ((recv(fd,recvbuf,MAXSIZE,0)) == -1){ 
 					printf("recv() error\n"); 
 					exit(1); 
@@ -36,9 +36,9 @@ struct hostent *host;
 struct sockaddr_in server;  
 
 
-if (argc !=2) {         
-    printf("Usage: %s <IP Address>\n",argv[0]); 
-exit(1); 
+if (argc != 2) {        
+    argv[1]="127.0.0.1";
+    printf("Use default ip address:%s\n",argv[1]); 
 } 
 
 
@@ -77,7 +77,8 @@ while(1)
 {
 memset(sendbuf,0,sizeof(sendbuf));
 fgets(sendbuf,sizeof(sendbuf),stdin);
-if(strcmp(sendbuf,"exit")==0){
+//if(strstr(sendbuf,"exit")){
+if(strncmp(sendbuf,"exit",4) == 0){
     memset(sendbuf,0,sizeof(sendbuf));
     printf("您已退出群聊\n");
     send(fd,sendbuf,(strlen(sendbuf)),0);
