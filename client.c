@@ -69,6 +69,8 @@ int main(int argc, char *argv[])
     }
 
     printf("connect success\n");
+
+    
     char str[] = "已上线\n";
     printf("请输入用户名：");
     fgets(name, sizeof(name), stdin);
@@ -89,11 +91,13 @@ int main(int argc, char *argv[])
             printf("您已下线\n");
             send(fd, sendbuf, (strlen(sendbuf)), 0);
             break;
-        }
-        send(fd, name, (strlen(name) - 1), 0);
-        send(fd, ":", 1, 0);
+        }else if(strncmp(sendbuf, "/p ", 3) == 0) {
 
-        send(fd, sendbuf, (strlen(sendbuf)), 0);
+        }
+        char msg[1026];
+        send(fd, name, (strlen(name) - 1), 0);
+        sprintf(msg,"-%d:%s",fd,sendbuf);
+        send(fd,msg,strlen(msg),0);
     }
     close(fd);
 }
