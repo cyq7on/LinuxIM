@@ -35,36 +35,19 @@ void *pthread_service(void *sfd)
             len = recv(fd, buffer + pos, BUFFSIZE, 0);
             if (len <= 0)
             {
-                perror("ERRPR");
+                printf("recv error\n");
                 break;
             }
             pos += len;
         }
 
-        /* int numbytes;
-        int i;
-        numbytes = recv(fd, buf, BUFFSIZE, 0);
-        if (numbytes <= 0)
-        {
-            for (i = 0; i < MAXCLIENT; i++)
-            {
-                if (fd == ftArray[i])
-                {
-                    ftArray[i] = 0;
-                }
-            }
-            printf("numbytes=%d\n", numbytes);
-            printf("fd=%d exit\n", fd);
-            break;
-        } */
-        /* if (strncmp(buf, "exit", 4) == 0) {
-
-        } */
+        sendMsg(fd, buffer, size);
         memcpy(msg, buffer, size);
         printf("receive message from %d,size=%d\n", fd, len);
-        printf("%s,%s\n", msg->userName,msg->content);
+        printf("%s,%s\n", msg->content,msg->userName);
+        
 
-        if (strncmp(buf, "/p", 2) == 0)
+        /* if (strncmp(buf, "/p", 2) == 0)
         {
             /* char *spilit;
             char *arr[MAXCLIENT];
@@ -74,12 +57,12 @@ void *pthread_service(void *sfd)
                 arr[i++] = spilit;
             }
             char *msg = arr[--i];
-            printf("msg:%s",msg); */
+            printf("msg:%s",msg); 
         }
         else
         {
-            sendMsg(fd, buf, len);
-        }
+            sendMsg(fd, buffer, size);
+        } */
         // bzero(buf, BUFFSIZE);
         free(buffer);
         free(msg);

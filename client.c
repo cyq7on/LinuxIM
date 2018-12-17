@@ -7,9 +7,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
-#include<pthread.h> 
+#include <pthread.h>
 #include "common.h"
-
 
 char sendbuf[BUFFSIZE];
 char recvbuf[BUFFSIZE];
@@ -20,15 +19,37 @@ void pthread_recv(void *ptr)
 {
     while (1)
     {
+        int size = sizeof(Msg);
+
+        Msg *msg = (Msg *)malloc(size);
+
+        char *buffer = (char *)malloc(size);
+
+        int pos = 0;
+        int len;
+
+        while (pos < size)
+        {
+            len = recv(fd, buffer + pos, BUFFSIZE, 0);
+            if (len <= 0)
+            {
+                printf("recv error\n");
+                break;
+            }
+            pos += len;
+        }
+
+        memcpy(msg, buffer, size);
+        printf("%s:%s\n", msg->userName, msg->content);
         // 接收数据
-        if ((recv(fd, recvbuf, BUFFSIZE, 0)) == -1)
+        /* if ((recv(fd, recvbuf, BUFFSIZE, 0)) == -1)
         {
             printf("recv error\n");
             exit(1);
         }
         printf("%s", recvbuf);
         // recvbuf初始化为0
-        memset(recvbuf, 0, sizeof(recvbuf));
+        memset(recvbuf, 0, sizeof(recvbuf)); */
     }
 }
 
@@ -70,8 +91,7 @@ int main(int argc, char *argv[])
 
     printf("connect success\n");
 
-    
-    char str[] = "已上线\n";
+    char str[] = "已上线";
     printf("请输入用户名：");
     fgets(name, sizeof(name), stdin);
     int size = sizeof(Msg);
@@ -79,24 +99,23 @@ int main(int argc, char *argv[])
     /* User *user = (User*)malloc(sizeof(User));
     memcpy(user->name,name,strlen(name)); */
 
-    Msg *msg = (Msg*)malloc(size);
-    memcpy(msg->content,str,strlen(str));
-    memcpy(msg->userName,name,strlen(name) - 1);
+    Msg *msg = (Msg *)malloc(size);
+    memcpy(msg->content, str, strlen(str));
+    memcpy(msg->userName, name, strlen(name) - 1);
 
-
-    char *buffer=(char*)malloc(size);
-    memcpy(buffer,msg,size);
-    int pos=0;
-    int len=0;
-    while(pos < size)
+    char *buffer = (char *)malloc(size);
+    memcpy(buffer, msg, size);
+    int pos = 0;
+    int len = 0;
+    while (pos < size)
     {
-        len=send(fd, buffer+pos, BUFFSIZE,0);
-        if(len <= 0)
+        len = send(fd, buffer + pos, BUFFSIZE, 0);
+        if (len <= 0)
         {
-            perror("ERRPR");
+            printf("send error\n");
             break;
         }
-        pos+=len;
+        pos += len;
     }
     free(buffer);
     free(msg);
@@ -119,10 +138,31 @@ int main(int argc, char *argv[])
             send(fd, sendbuf, (strlen(sendbuf)), 0);
             break;
         }
-        char msg[1026];
+
+        msg = (Msg *)malloc(size);
+        memcpy(msg->content, sendbuf, strlen(sendbuf) - 1);
+        memcpy(msg->userName, name, strlen(name) - 1);
+
+        buffer = (char *)malloc(size);
+        memcpy(buffer, msg, size);
+        int pos = 0;
+        int len = 0;
+        while (pos < size)
+        {
+            len = send(fd, buffer + pos, BUFFSIZE, 0);
+            if (len <= 0)
+            {
+                printf("send error\n");
+                break;
+            }
+            pos += len;
+        }
+        free(buffer);
+        free(msg);
+        /* char msg[1026];
         send(fd, name, (strlen(name) - 1), 0);
-        sprintf(msg,":%s",sendbuf);
-        send(fd,msg,strlen(msg),0);
+        sprintf(msg, ":%s", sendbuf);
+        send(fd, msg, strlen(msg), 0); */
     }
     close(fd);
 }
