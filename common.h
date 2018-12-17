@@ -5,6 +5,8 @@
 #define BUFFSIZE 1024
 
 typedef struct {
+    // 发送方id
+    int userId;
     // 发送方用户名
     char userName[32];
     // 接收方用户id

@@ -74,8 +74,35 @@ int main(int argc, char *argv[])
     char str[] = "已上线\n";
     printf("请输入用户名：");
     fgets(name, sizeof(name), stdin);
-    send(fd, name, (strlen(name) - 1), 0);
-    send(fd, str, (strlen(str)), 0);
+    int size = sizeof(Msg);
+
+    /* User *user = (User*)malloc(sizeof(User));
+    memcpy(user->name,name,strlen(name)); */
+
+    Msg *msg = (Msg*)malloc(size);
+    memcpy(msg->content,str,strlen(str));
+    memcpy(msg->userName,name,strlen(name) - 1);
+
+
+    char *buffer=(char*)malloc(size);
+    memcpy(buffer,msg,size);
+    int pos=0;
+    int len=0;
+    while(pos < size)
+    {
+        len=send(fd, buffer+pos, BUFFSIZE,0);
+        if(len <= 0)
+        {
+            perror("ERRPR");
+            break;
+        }
+        pos+=len;
+    }
+    free(buffer);
+    free(msg);
+
+    /* send(fd, name, (strlen(name) - 1), 0);
+    send(fd, str, (strlen(str)), 0); */
 
     pthread_t tid;
     pthread_create(&tid, NULL, pthread_recv, NULL);

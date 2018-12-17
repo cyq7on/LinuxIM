@@ -12,7 +12,6 @@
 
 #define BACKLOG 1
 
-
 int ftArray[MAXCLIENT] = {0};
 char *user[MAXCLIENT];
 char buf[BUFFSIZE];
@@ -22,7 +21,27 @@ void *pthread_service(void *sfd)
     int fd = *(int *)sfd;
     while (1)
     {
-        int numbytes;
+
+        int size = sizeof(Msg);
+
+        Msg *msg = (Msg *)malloc(size);
+
+        char *buffer = (char *)malloc(size);
+       
+        int pos = 0;
+        int len ;
+        while (pos < size)
+        {
+            len = recv(fd, buffer + pos, BUFFSIZE, 0);
+            if (len <= 0)
+            {
+                perror("ERRPR");
+                break;
+            }
+            pos += len;
+        }
+
+        /* int numbytes;
         int i;
         numbytes = recv(fd, buf, BUFFSIZE, 0);
         if (numbytes <= 0)
@@ -37,13 +56,16 @@ void *pthread_service(void *sfd)
             printf("numbytes=%d\n", numbytes);
             printf("fd=%d exit\n", fd);
             break;
-        }
+        } */
         /* if (strncmp(buf, "exit", 4) == 0) {
 
         } */
-        printf("receive message from %d,size=%d\n", fd, numbytes);
-        
-        if(strncmp(buf, "/p", 2) == 0) {
+        memcpy(msg, buffer, size);
+        printf("receive message from %d,size=%d\n", fd, len);
+        printf("%s,%s\n", msg->userName,msg->content);
+
+        if (strncmp(buf, "/p", 2) == 0)
+        {
             /* char *spilit;
             char *arr[MAXCLIENT];
             
@@ -53,11 +75,14 @@ void *pthread_service(void *sfd)
             }
             char *msg = arr[--i];
             printf("msg:%s",msg); */
-
-        }else {
-            sendMsg(fd, buf, numbytes);
         }
-        bzero(buf, BUFFSIZE);
+        else
+        {
+            sendMsg(fd, buf, len);
+        }
+        // bzero(buf, BUFFSIZE);
+        free(buffer);
+        free(msg);
     }
     close(fd);
 }
