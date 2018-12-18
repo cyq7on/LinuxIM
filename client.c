@@ -38,7 +38,7 @@ void pthread_recv(void *ptr)
         }
 
         memcpy(msg, buffer, size);
-        printf("%s-%d:%s\n", msg->userName,msg->userId, msg->content);
+        printf("%s-%d:%s\n", msg->userName,msg->userFd, msg->content);
         memset(msg, 0, size);
         memset(buffer, 0, size);
 
@@ -97,7 +97,6 @@ int main(int argc, char *argv[])
     char str[] = "已上线";
     printf("请输入用户名：");
     fgets(name, sizeof(name), stdin);
-    int size = sizeof(Msg);
 
     /* User *user = (User*)malloc(sizeof(User));
     memcpy(user->name,name,strlen(name)); */
@@ -109,7 +108,7 @@ int main(int argc, char *argv[])
     char *buffer = (char *)malloc(size);
     memcpy(buffer, msg, size);
     int pos = 0;
-    int len = 0;
+    int len;
     while (pos < size)
     {
         len = send(fd, buffer + pos, BUFFSIZE, 0);

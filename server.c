@@ -38,7 +38,7 @@ void *pthread_service(void *sfd)
         }
 
         memcpy(msg, buffer, size);
-        msg->userId = fd;
+        msg->userFd = fd;
         memset(buffer, 0, size);
         memcpy(buffer, msg, size);
         sendMsg(fd, buffer, size);

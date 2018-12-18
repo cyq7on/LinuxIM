@@ -5,14 +5,16 @@
 #define BUFFSIZE 1024
 
 typedef struct {
-    // 发送方id
-    int userId;
+    // 发送方fd
+    int userFd;
     // 发送方用户名
     char userName[32];
     // 接收方用户id
     int recvUserId[MAXCLIENT - 1];
     // 消息内容
     char content[1024];
+    // 发送方id,备用
+    int userId;
 } Msg;
 
 typedef struct {
