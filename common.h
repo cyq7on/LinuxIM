@@ -4,11 +4,14 @@
 #define PORT 1234
 #define MAXCLIENT 7
 #define BUFFSIZE 1024
-#define HELP "-help"
-#define ENTER "-enter"
 // 正常的聊天消息类型
-#define DEFAULT "-default"
-#define EXIT "-exit"
+#define DEFAULT 0
+// 帮助
+#define HELP 1
+// 进入
+#define ENTER 2
+// 退出
+#define EXIT 3
 
 typedef struct {
     // 发送方fd
@@ -20,7 +23,7 @@ typedef struct {
     // 消息内容
     char content[1024];
     // 消息类型
-    char type[8];
+    int type;
     // 发送方id,备用
     int userId;
 } Msg;

@@ -15,7 +15,6 @@ char recvbuf[BUFFSIZE];
 char name[32];
 int fd;
 
-
 void pthread_recv(void *ptr)
 {
     Msg *msg = (Msg *)malloc(size);
@@ -29,7 +28,7 @@ void pthread_recv(void *ptr)
         while (pos < size)
         {
             len = recv(fd, buffer + pos, BUFFSIZE, 0);
-            if (len <= 0)
+            if (len < 0)
             {
                 printf("recv error\n");
                 exit(1);
@@ -38,7 +37,7 @@ void pthread_recv(void *ptr)
         }
 
         memcpy(msg, buffer, size);
-        printf("%s-%d:%s\n", msg->userName,msg->userFd, msg->content);
+        printf("%s-%d:%s\n", msg->userName, msg->userFd, msg->content);
         memset(msg, 0, size);
         memset(buffer, 0, size);
 
@@ -102,6 +101,7 @@ int main(int argc, char *argv[])
     memcpy(user->name,name,strlen(name)); */
 
     Msg *msg = (Msg *)malloc(size);
+    msg->type = ENTER;
     memcpy(msg->content, str, strlen(str));
     memcpy(msg->userName, name, strlen(name) - 1);
 
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     while (pos < size)
     {
         len = send(fd, buffer + pos, BUFFSIZE, 0);
-        if (len <= 0)
+        if (len < 0)
         {
             printf("send error\n");
             break;
@@ -134,18 +134,39 @@ int main(int argc, char *argv[])
     {
         memset(sendbuf, 0, sizeof(sendbuf));
         fgets(sendbuf, sizeof(sendbuf), stdin);
+
+        memcpy(msg->userName, name, strlen(name) - 1);
+
         // 比较前四个字符
         if (strncmp(sendbuf, "exit", 4) == 0)
         {
-            memset(sendbuf, 0, sizeof(sendbuf));
+            // memset(sendbuf, 0, sizeof(sendbuf));
             printf("您已下线\n");
-            send(fd, sendbuf, (strlen(sendbuf)), 0);
-            break;
+            char *offline = "已下线";
+            memcpy(msg->content, offline, strlen(offline));
+            msg->type = EXIT;
         }
-
-        // msg = (Msg *)malloc(size);
-        memcpy(msg->content, sendbuf, strlen(sendbuf) - 1);
-        memcpy(msg->userName, name, strlen(name) - 1);
+        else if (strncmp(sendbuf, "/p", 2) == 0)
+        {
+            char *split;
+            char *content;
+            split = strtok(sendbuf, " ");
+            // 得到消息内容
+            split = strtok(NULL, " ");
+            memcpy(msg->content, split, strlen(split));
+            int i = 0;
+            split = strtok(NULL, " ");
+            while (split != NULL)
+            {
+                msg->recvUserId[i++] = atoi(split);
+                split = strtok(NULL, " ");
+            }
+            // printf("id:%d\n", msg->recvUserId[0]);
+        }
+        else
+        {
+            memcpy(msg->content, sendbuf, strlen(sendbuf) - 1);
+        }
 
         // buffer = (char *)malloc(size);
         memcpy(buffer, msg, size);
@@ -163,6 +184,10 @@ int main(int argc, char *argv[])
         }
         memset(msg, 0, size);
         memset(buffer, 0, size);
+        if (strncmp(sendbuf, "exit", 4) == 0)
+        {
+            exit(0);
+        }
         /* free(buffer);
         free(msg); */
         /* char msg[1026];

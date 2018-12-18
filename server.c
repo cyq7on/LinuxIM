@@ -15,6 +15,7 @@
 int ftArray[MAXCLIENT] = {0};
 char *user[MAXCLIENT];
 char buf[BUFFSIZE];
+void reset(int userId);
 
 void *pthread_service(void *sfd)
 {
@@ -23,16 +24,16 @@ void *pthread_service(void *sfd)
     char *buffer = (char *)malloc(size);
     while (1)
     {
-       
+
         int pos = 0;
-        int len ;
+        int len;
         while (pos < size)
         {
             len = recv(fd, buffer + pos, BUFFSIZE, 0);
-            if (len <= 0)
+            if (len < 0)
             {
                 printf("recv error\n");
-                exit(1);
+                pthread_exit(NULL);
             }
             pos += len;
         }
@@ -41,14 +42,33 @@ void *pthread_service(void *sfd)
         msg->userFd = fd;
         memset(buffer, 0, size);
         memcpy(buffer, msg, size);
+        if (!msg->recvUserId[0])
+        {
+            for(int i = 0;i<MAXCLIENT -1;i++){
+                printf("recvid:%d\n",msg->recvUserId[i]);
+            }
+            printf("recv all\n");
+        }
+        switch (msg->type)
+        {
+        case DEFAULT:
+            break;
+        case HELP:
+            break;
+        case ENTER:
+            break;
+        case EXIT:
+            reset(msg->userFd);
+            break;
+        }
         sendMsg(fd, buffer, size);
+
         printf("receive message from %d,size=%ld\n", fd, strlen(msg->content));
-        printf("%s,%s\n", msg->userName,msg->content);
-        
+        printf("%s,%s\n", msg->userName, msg->content);
 
         /* if (strncmp(buf, "/p", 2) == 0)
         {
-            /* char *spilit;
+            char *spilit;
             char *arr[MAXCLIENT];
             
             int i = 0;
@@ -83,6 +103,28 @@ int sendMsg(int fd, char *buf, int Size)
         }
     }
     return 0;
+}
+
+// 根据id获取索引
+int getIndex(int userId)
+{
+    for (int i = 0; i < MAXCLIENT; i++)
+    {
+        if (userId == ftArray[i])
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void reset(int userId)
+{
+    int index = getIndex(userId);
+    if (index)
+    {
+        ftArray[index] = 0;
+    }
 }
 
 int main()
@@ -155,5 +197,6 @@ int main()
         number = number + 1;
     }
 
+    printf("close fd\n");
     close(listenfd);
 }
