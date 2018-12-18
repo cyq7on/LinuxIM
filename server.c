@@ -42,13 +42,7 @@ void *pthread_service(void *sfd)
         msg->userFd = fd;
         memset(buffer, 0, size);
         memcpy(buffer, msg, size);
-        if (!msg->recvUserId[0])
-        {
-            for(int i = 0;i<MAXCLIENT -1;i++){
-                printf("recvid:%d\n",msg->recvUserId[i]);
-            }
-            printf("recv all\n");
-        }
+
         switch (msg->type)
         {
         case DEFAULT:
@@ -61,7 +55,25 @@ void *pthread_service(void *sfd)
             reset(msg->userFd);
             break;
         }
-        sendMsg(fd, buffer, size);
+        
+        for (int i = 0; i < MAXCLIENT - 1; i++)
+        {
+            printf("recvUserId: %d\n", msg->recvUserId[i]);
+        }
+
+        // 指定了接收人
+        if (msg->recvUserId[0])
+        {
+            for (int i = 0; msg->recvUserId[i]; i++)
+            {
+                send(msg->recvUserId[i], buffer, size, 0);
+                printf("send private message to %d\n", ftArray[i]);
+            }
+        }
+        else
+        {
+            sendMsg(fd, buffer, size);
+        }
 
         printf("receive message from %d,size=%ld\n", fd, strlen(msg->content));
         printf("%s,%s\n", msg->userName, msg->content);
