@@ -37,10 +37,13 @@ void *pthread_service(void *sfd)
             pos += len;
         }
 
-        sendMsg(fd, buffer, size);
         memcpy(msg, buffer, size);
-        printf("receive message from %d,size=%d\n", fd, len);
-        printf("%s,%s\n", msg->content,msg->userName);
+        msg->userId = fd;
+        memset(buffer, 0, size);
+        memcpy(buffer, msg, size);
+        sendMsg(fd, buffer, size);
+        printf("receive message from %d,size=%ld\n", fd, strlen(msg->content));
+        printf("%s,%s\n", msg->userName,msg->content);
         
 
         /* if (strncmp(buf, "/p", 2) == 0)

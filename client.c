@@ -38,7 +38,7 @@ void pthread_recv(void *ptr)
         }
 
         memcpy(msg, buffer, size);
-        printf("%s:%s\n", msg->userName, msg->content);
+        printf("%s-%d:%s\n", msg->userName,msg->userId, msg->content);
         memset(msg, 0, size);
         memset(buffer, 0, size);
 
