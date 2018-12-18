@@ -14,16 +14,17 @@ char sendbuf[BUFFSIZE];
 char recvbuf[BUFFSIZE];
 char name[32];
 int fd;
+Msg *msg;
+char *buffer;
 
 void pthread_recv(void *ptr)
 {
     while (1)
     {
-        int size = sizeof(Msg);
 
-        Msg *msg = (Msg *)malloc(size);
+       /*  Msg *msg = (Msg *)malloc(size);
 
-        char *buffer = (char *)malloc(size);
+        char *buffer = (char *)malloc(size); */
 
         int pos = 0;
         int len;
@@ -34,13 +35,18 @@ void pthread_recv(void *ptr)
             if (len <= 0)
             {
                 printf("recv error\n");
-                break;
+                exit(1);
             }
             pos += len;
         }
 
         memcpy(msg, buffer, size);
         printf("%s:%s\n", msg->userName, msg->content);
+        memset(msg, 0, size);
+        memset(buffer, 0, size);
+
+       /*  free(buffer);
+        free(msg); */
         // 接收数据
         /* if ((recv(fd, recvbuf, BUFFSIZE, 0)) == -1)
         {
@@ -99,11 +105,11 @@ int main(int argc, char *argv[])
     /* User *user = (User*)malloc(sizeof(User));
     memcpy(user->name,name,strlen(name)); */
 
-    Msg *msg = (Msg *)malloc(size);
+    msg = (Msg *)malloc(size);
     memcpy(msg->content, str, strlen(str));
     memcpy(msg->userName, name, strlen(name) - 1);
 
-    char *buffer = (char *)malloc(size);
+    buffer = (char *)malloc(size);
     memcpy(buffer, msg, size);
     int pos = 0;
     int len = 0;
@@ -117,8 +123,10 @@ int main(int argc, char *argv[])
         }
         pos += len;
     }
-    free(buffer);
-    free(msg);
+    memset(msg, 0, size);
+    memset(buffer, 0, size);
+    /* free(buffer);
+    free(msg); */
 
     /* send(fd, name, (strlen(name) - 1), 0);
     send(fd, str, (strlen(str)), 0); */
@@ -139,11 +147,11 @@ int main(int argc, char *argv[])
             break;
         }
 
-        msg = (Msg *)malloc(size);
+        // msg = (Msg *)malloc(size);
         memcpy(msg->content, sendbuf, strlen(sendbuf) - 1);
         memcpy(msg->userName, name, strlen(name) - 1);
 
-        buffer = (char *)malloc(size);
+        // buffer = (char *)malloc(size);
         memcpy(buffer, msg, size);
         int pos = 0;
         int len = 0;
@@ -157,8 +165,10 @@ int main(int argc, char *argv[])
             }
             pos += len;
         }
-        free(buffer);
-        free(msg);
+        memset(msg, 0, size);
+        memset(buffer, 0, size);
+        /* free(buffer);
+        free(msg); */
         /* char msg[1026];
         send(fd, name, (strlen(name) - 1), 0);
         sprintf(msg, ":%s", sendbuf);

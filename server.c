@@ -22,7 +22,6 @@ void *pthread_service(void *sfd)
     while (1)
     {
 
-        int size = sizeof(Msg);
 
         Msg *msg = (Msg *)malloc(size);
 
@@ -36,7 +35,7 @@ void *pthread_service(void *sfd)
             if (len <= 0)
             {
                 printf("recv error\n");
-                break;
+                exit(1);
             }
             pos += len;
         }

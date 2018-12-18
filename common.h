@@ -20,4 +20,6 @@ typedef struct {
     char name[32];
 } User;
 
+int size = sizeof(Msg);
+
 #endif
