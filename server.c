@@ -19,13 +19,10 @@ char buf[BUFFSIZE];
 void *pthread_service(void *sfd)
 {
     int fd = *(int *)sfd;
+    Msg *msg = (Msg *)malloc(size);
+    char *buffer = (char *)malloc(size);
     while (1)
     {
-
-
-        Msg *msg = (Msg *)malloc(size);
-
-        char *buffer = (char *)malloc(size);
        
         int pos = 0;
         int len ;
@@ -63,8 +60,8 @@ void *pthread_service(void *sfd)
             sendMsg(fd, buffer, size);
         } */
         // bzero(buf, BUFFSIZE);
-        free(buffer);
-        free(msg);
+        memset(msg, 0, size);
+        memset(buffer, 0, size);
     }
     close(fd);
 }
