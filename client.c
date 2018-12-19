@@ -9,6 +9,7 @@
 #include <string.h>
 #include <pthread.h>
 #include "common.h"
+#include <dlfcn.h>
 
 char sendbuf[BUFFSIZE];
 char recvbuf[BUFFSIZE];
@@ -53,6 +54,31 @@ void pthread_recv(void *ptr)
         // recvbuf初始化为0
         memset(recvbuf, 0, sizeof(recvbuf)); */
     }
+}
+
+void runPlugin(char *pname)
+{
+    void (*pfunc)();
+    //错误信息字符串
+    char *error_message;
+    char libname[100];
+    sprintf(libname, "%s%s%s", "./lib/", pname, ".so");
+    void *handle = dlopen(libname, RTLD_LAZY);
+    error_message = dlerror();
+    if (handle == NULL)
+    {
+        printf("plugin dlopen error:%s\n", error_message);
+        return NULL;
+    }
+    *(void **)(&pfunc) = dlsym(handle, "process");
+    error_message = dlerror();
+    if (pfunc == NULL)
+    {
+        printf("plugin method error:%s\n", error_message);
+        return NULL;
+    }
+    pfunc();
+    dlclose(handle);
 }
 
 int main(int argc, char *argv[])
@@ -146,10 +172,20 @@ int main(int argc, char *argv[])
             memcpy(msg->content, offline, strlen(offline));
             msg->type = EXIT;
         }
+        else if (strncmp(sendbuf, "/u", 2) == 0)
+        {
+            char *split;
+            split = strtok(sendbuf, " ");
+            // 得到插件名
+            split = strtok(NULL, " ");
+            // 去除换行符
+            split[strlen(split) - 1] = 0;
+            runPlugin(split);
+            continue;
+        }
         else if (strncmp(sendbuf, "/p", 2) == 0)
         {
             char *split;
-            char *content;
             split = strtok(sendbuf, " ");
             // 得到消息内容
             split = strtok(NULL, " ");
