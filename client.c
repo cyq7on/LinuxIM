@@ -38,7 +38,23 @@ void pthread_recv(void *ptr)
         }
 
         memcpy(msg, buffer, size);
-        printf("%s-%d:%s\n", msg->userName, msg->userFd, msg->content);
+
+        // 撤回
+        if (msg->type == WITHDRAW)
+        {
+            if (strncmp(msg->userName, name ,strlen(msg->userName)) == 0)
+            {
+                printf("您已成功撤回消息\n");
+            }
+            else
+            {
+                printf("%s撤回一条消息\n", msg->userName);
+            }
+        }
+        else
+        {
+            printf("%s-%d:%s\n", msg->userName, msg->userFd, msg->content);
+        }
         memset(msg, 0, size);
         memset(buffer, 0, size);
 
@@ -56,29 +72,31 @@ void pthread_recv(void *ptr)
     }
 }
 
-void runPlugin(char *pname)
+// 运行插件
+int runPlugin(char *pname)
 {
     void (*pfunc)();
     //错误信息字符串
-    char *error_message;
-    char libname[100];
+    char *errorMessage;
+    char libname[32];
     sprintf(libname, "%s%s%s", "./lib/", pname, ".so");
     void *handle = dlopen(libname, RTLD_LAZY);
-    error_message = dlerror();
+    errorMessage = dlerror();
     if (handle == NULL)
     {
-        printf("plugin dlopen error:%s\n", error_message);
-        return NULL;
+        printf("plugin dlopen error:%s\n", errorMessage);
+        return 0;
     }
     *(void **)(&pfunc) = dlsym(handle, "process");
-    error_message = dlerror();
+    errorMessage = dlerror();
     if (pfunc == NULL)
     {
-        printf("plugin method error:%s\n", error_message);
-        return NULL;
+        printf("plugin method error:%s\n", errorMessage);
+        return 0;
     }
     pfunc();
     dlclose(handle);
+    return 1;
 }
 
 int main(int argc, char *argv[])
@@ -163,7 +181,7 @@ int main(int argc, char *argv[])
 
         memcpy(msg->userName, name, strlen(name) - 1);
 
-        // 比较前四个字符
+        // 退出
         if (strncmp(sendbuf, "exit", 4) == 0)
         {
             // memset(sendbuf, 0, sizeof(sendbuf));
@@ -172,6 +190,7 @@ int main(int argc, char *argv[])
             memcpy(msg->content, offline, strlen(offline));
             msg->type = EXIT;
         }
+        // 升级
         else if (strncmp(sendbuf, "/u", 2) == 0)
         {
             char *split;
@@ -183,6 +202,20 @@ int main(int argc, char *argv[])
             runPlugin(split);
             continue;
         }
+        // 撤回
+        else if (strncmp(sendbuf, "/w", 2) == 0)
+        {
+            char *split;
+            split = strtok(sendbuf, " ");
+            // 得到消息内容
+            split = strtok(NULL, " ");
+            // 去除换行符
+            split[strlen(split) - 1] = 0;
+            memcpy(msg->content, split, strlen(split));
+            // printf("wd content:%s\n",msg->content);
+            msg->type = WITHDRAW;
+        }
+        // 私聊
         else if (strncmp(sendbuf, "/p", 2) == 0)
         {
             char *split;
@@ -199,6 +232,7 @@ int main(int argc, char *argv[])
             }
             // printf("id:%d\n", msg->recvUserId[0]);
         }
+        // 群聊
         else
         {
             memcpy(msg->content, sendbuf, strlen(sendbuf) - 1);

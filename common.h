@@ -12,6 +12,8 @@
 #define ENTER 2
 // 退出
 #define EXIT 3
+// 撤回
+#define WITHDRAW 4
 
 typedef struct {
     // 发送方fd

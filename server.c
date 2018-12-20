@@ -40,10 +40,14 @@ void *pthread_service(void *sfd)
 
         memcpy(msg, buffer, size);
         msg->userFd = fd;
+
+        printf("receive message from %d,size=%ld\n", fd, strlen(msg->content));
+        printf("%s,%s,%d\n", msg->userName, msg->content,msg->type);
+
         memset(buffer, 0, size);
         memcpy(buffer, msg, size);
 
-        switch (msg->type)
+        /* switch (msg->type)
         {
         case DEFAULT:
             break;
@@ -54,11 +58,11 @@ void *pthread_service(void *sfd)
         case EXIT:
             reset(msg->userFd);
             break;
-        }
-        
-        for (int i = 0; i < MAXCLIENT - 1; i++)
-        {
-            printf("recvUserId: %d\n", msg->recvUserId[i]);
+        } */
+
+        // 下线，fd置零
+        if(msg->type == EXIT) {
+            reset(msg->userFd);
         }
 
         // 指定了接收人
@@ -70,14 +74,26 @@ void *pthread_service(void *sfd)
                 printf("send private message to %d\n", ftArray[i]);
             }
         }
+        // 广播，包括发送人
+        else if (msg->type == WITHDRAW)
+        {
+            int i;
+            for (i = 0; i < MAXCLIENT; i++)
+            {
+                if ((ftArray[i] != 0))
+                {
+                    send(ftArray[i], buffer, size, 0);
+                    printf("send withdraw message to %d\n", ftArray[i]);
+                }
+            }
+        }
+        // 群发
         else
         {
             sendMsg(fd, buffer, size);
         }
 
-        printf("receive message from %d,size=%ld\n", fd, strlen(msg->content));
-        printf("%s,%s\n", msg->userName, msg->content);
-
+        
         /* if (strncmp(buf, "/p", 2) == 0)
         {
             char *spilit;
