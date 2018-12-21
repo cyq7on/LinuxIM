@@ -23,17 +23,38 @@ char *historyMsg[MAXMSGCOUNT];
 // msgCount大于MAXMSGCOUNT标志
 int flag = 0;
 
-void showMsg(char *msg) {
-    printf("%s",msg);
-    if(flag) {
+// 显示消息并存储
+void showMsg(char *msg)
+{
+    printf("%s", msg);
+    if (flag)
+    {
         free(historyMsg[msgCount]);
     }
     historyMsg[msgCount] = (char *)malloc(strlen(msg));
     // 存储消息
-    strcpy(historyMsg[msgCount++],msg);
-    if(msgCount >= MAXMSGCOUNT) {
+    strcpy(historyMsg[msgCount++], msg);
+    if (msgCount >= MAXMSGCOUNT)
+    {
         msgCount = 0;
         flag = 1;
+    }
+}
+
+// 删除消息
+void deleteMsg(char *msg)
+{
+    for (int i = msgCount - 1; i >= 0; i--)
+    {
+        if (strcmp(msg, historyMsg[i]) == 0)
+        {
+            for (int j = i; j < msgCount; j++)
+            {
+                historyMsg[j] = historyMsg[j + 1];
+            }
+            msgCount--;
+            break;
+        }
     }
 }
 
@@ -63,19 +84,23 @@ void pthread_recv(void *ptr)
         // 撤回
         if (msg->type == WITHDRAW)
         {
-            if (strncmp(msg->userName, name ,strlen(msg->userName)) == 0)
+            if (strncmp(msg->userName, name, strlen(msg->userName)) == 0)
             {
-                printf("您已成功撤回消息\n");
+                showMsg("您已成功撤回消息\n");
             }
             else
             {
-                printf("%s撤回一条消息\n", msg->userName);
+                char info[1024];
+                sprintf(info, "%s撤回一条消息\n", msg->userName);
+                showMsg(info);
             }
             system("reset");
         }
         else
         {
-            printf("%s-%d:%s\n", msg->userName, msg->userFd, msg->content);
+            char info[1024];
+            sprintf(info, "%s-%d:%s\n", msg->userName, msg->userFd, msg->content);
+            showMsg(info);
         }
         memset(msg, 0, size);
         memset(buffer, 0, size);
@@ -130,12 +155,14 @@ int main(int argc, char *argv[])
     if (argc != 2)
     {
         argv[1] = "127.0.0.1";
-        printf("Use default ip address:%s\n", argv[1]);
+        char info[1024];
+        sprintf(info, "Use default ip address:%s\n", argv[1]);
+        showMsg(info);
     }
 
     if ((host = gethostbyname(argv[1])) == NULL)
     {
-        printf("gethostbyname error\n");
+        showMsg("gethostbyname error\n");
         exit(1);
     }
 
@@ -160,7 +187,7 @@ int main(int argc, char *argv[])
     printf("connect success\n");
 
     char str[] = "已上线";
-    printf("请输入用户名：");
+    showMsg("请输入用户名：");
     fgets(name, sizeof(name), stdin);
 
     /* User *user = (User*)malloc(sizeof(User));
@@ -207,7 +234,7 @@ int main(int argc, char *argv[])
         if (strncmp(sendbuf, "exit", 4) == 0)
         {
             // memset(sendbuf, 0, sizeof(sendbuf));
-            printf("您已下线\n");
+            showMsg("您已下线\n");
             char *offline = "已下线";
             memcpy(msg->content, offline, strlen(offline));
             msg->type = EXIT;
