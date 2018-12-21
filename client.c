@@ -26,7 +26,12 @@ int flag = 0;
 // 显示消息并存储
 void showMsg(char *msg)
 {
-    printf("%s", msg);
+    printf("%s\n", msg);
+    saveMsg(msg);
+}
+
+void saveMsg(char *msg)
+{
     if (flag)
     {
         free(historyMsg[msgCount]);
@@ -86,20 +91,29 @@ void pthread_recv(void *ptr)
         {
             if (strncmp(msg->userName, name, strlen(msg->userName)) == 0)
             {
-                showMsg("您已成功撤回消息\n");
+                showMsg("您已成功撤回消息");
+                deleteMsg(msg->content);
             }
             else
             {
                 char info[1024];
-                sprintf(info, "%s撤回一条消息\n", msg->userName);
+                sprintf(info, "%s撤回一条消息", msg->userName);
                 showMsg(info);
+
+                char withdraw[1024];
+                sprintf(withdraw, "%s-%d:%s", msg->userName, msg->userFd, msg->content);
+                deleteMsg(withdraw);
             }
             system("reset");
+            for (int i = 0; i < msgCount; i++)
+            {
+                printf("%s\n", historyMsg[i]);
+            }
         }
         else
         {
             char info[1024];
-            sprintf(info, "%s-%d:%s\n", msg->userName, msg->userFd, msg->content);
+            sprintf(info, "%s-%d:%s", msg->userName, msg->userFd, msg->content);
             showMsg(info);
         }
         memset(msg, 0, size);
@@ -156,13 +170,13 @@ int main(int argc, char *argv[])
     {
         argv[1] = "127.0.0.1";
         char info[1024];
-        sprintf(info, "Use default ip address:%s\n", argv[1]);
+        sprintf(info, "Use default ip address:%s", argv[1]);
         showMsg(info);
     }
 
     if ((host = gethostbyname(argv[1])) == NULL)
     {
-        showMsg("gethostbyname error\n");
+        showMsg("gethostbyname error");
         exit(1);
     }
 
@@ -189,6 +203,8 @@ int main(int argc, char *argv[])
     char str[] = "已上线";
     showMsg("请输入用户名：");
     fgets(name, sizeof(name), stdin);
+    name[strlen(name) - 1] = 0;
+    saveMsg(name);
 
     /* User *user = (User*)malloc(sizeof(User));
     memcpy(user->name,name,strlen(name)); */
@@ -196,7 +212,7 @@ int main(int argc, char *argv[])
     Msg *msg = (Msg *)malloc(size);
     msg->type = ENTER;
     memcpy(msg->content, str, strlen(str));
-    memcpy(msg->userName, name, strlen(name) - 1);
+    memcpy(msg->userName, name, strlen(name));
 
     char *buffer = (char *)malloc(size);
     memcpy(buffer, msg, size);
@@ -228,13 +244,13 @@ int main(int argc, char *argv[])
         memset(sendbuf, 0, sizeof(sendbuf));
         fgets(sendbuf, sizeof(sendbuf), stdin);
 
-        memcpy(msg->userName, name, strlen(name) - 1);
+        memcpy(msg->userName, name, strlen(name));
 
         // 退出
         if (strncmp(sendbuf, "exit", 4) == 0)
         {
             // memset(sendbuf, 0, sizeof(sendbuf));
-            showMsg("您已下线\n");
+            showMsg("您已下线");
             char *offline = "已下线";
             memcpy(msg->content, offline, strlen(offline));
             msg->type = EXIT;
@@ -249,6 +265,10 @@ int main(int argc, char *argv[])
             // 去除换行符
             split[strlen(split) - 1] = 0;
             runPlugin(split);
+
+            char info[1024];
+            sprintf(info, "%s %s", "/u",split);
+            saveMsg(info);
             continue;
         }
         // 撤回
@@ -279,12 +299,17 @@ int main(int argc, char *argv[])
                 msg->recvUserId[i++] = atoi(split);
                 split = strtok(NULL, " ");
             }
+
+            char info[1024];
+            sprintf(info, "%s %s", "/p",msg->content);
+            saveMsg(info);
             // printf("id:%d\n", msg->recvUserId[0]);
         }
         // 群聊
         else
         {
             memcpy(msg->content, sendbuf, strlen(sendbuf) - 1);
+            saveMsg(msg->content);
         }
 
         // buffer = (char *)malloc(size);
