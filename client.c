@@ -11,10 +11,31 @@
 #include "common.h"
 #include <dlfcn.h>
 
+#define MAXMSGCOUNT 1024
+
 char sendbuf[BUFFSIZE];
 char recvbuf[BUFFSIZE];
 char name[32];
 int fd;
+int msgCount = 0;
+// 历史消息
+char *historyMsg[MAXMSGCOUNT];
+// msgCount大于MAXMSGCOUNT标志
+int flag = 0;
+
+void showMsg(char *msg) {
+    printf("%s",msg);
+    if(flag) {
+        free(historyMsg[msgCount]);
+    }
+    historyMsg[msgCount] = (char *)malloc(strlen(msg));
+    // 存储消息
+    strcpy(historyMsg[msgCount++],msg);
+    if(msgCount >= MAXMSGCOUNT) {
+        msgCount = 0;
+        flag = 1;
+    }
+}
 
 void pthread_recv(void *ptr)
 {
@@ -50,6 +71,7 @@ void pthread_recv(void *ptr)
             {
                 printf("%s撤回一条消息\n", msg->userName);
             }
+            system("reset");
         }
         else
         {
